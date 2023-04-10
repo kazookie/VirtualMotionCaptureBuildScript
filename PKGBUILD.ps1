@@ -24,8 +24,13 @@ $unitiy_release_url = "https://unity.com/releases/editor/whats-new/" + $unity_ve
 $unity_editor_download = (Invoke-WebRequest -UseBasicParsing $unitiy_release_url).Links | Where-Object {$_.href -like "*Windows64EditorInstalle*"} | Select-Object -ExpandProperty href
 $unity_editor=''
 
+$vs_download="https://aka.ms/vs/16/release/vs_community.exe"
 $vswhere ="${env:programFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $vs_version = ($depends | Where-Object { $_ -match "^VisualStudio" }) -replace "^[a-zA-Z]*"
+$vs_components=@(
+    "Microsoft.VisualStudio.Workload.ManagedDesktop"
+    "Microsoft.Net.Component.4.7.1.TargetingPack"
+)
 $msbuild=''
 $buildconfig='BETA'
 
@@ -74,11 +79,26 @@ function check() {
     
     # Check VisualStudio
     echo "Checking Visual Studio installed ..."
-    $visual_studio_info = & $vswhere -products * | Select-String -Pattern "displayName","installationPath" | Select-String -Pattern "${vs_version}" | Select-Object -First 1
+    $visual_studio_info = & $vswhere -requires $vs_components |
+        Select-String -Pattern "displayName","installationPath" |
+        Select-String -Pattern "${vs_version}" |
+        Select-Object -First 1
+    
     if ($visual_studio_info -eq $null) {
-        echo "Not found Visual Studio ${$vs_version}. Please Install From https://learn.microsoft.com/en-us/visualstudio/releases/2019/history"
-        Read-Host "(Press enter when the installation is finished)"
-        $visual_studio_info = & $vswhere -products * | Select-String -Pattern "displayName","installationPath" | Select-String -Pattern "${vs_version}" | Select-Object -First 1
+        echo "Not found Visual Studio ${$vs_version} with .NET 4.7.1 desktop development."
+        $input = Read-Host "Would you like to install it?(y/n)"
+        if ($input -eq "y") {
+            $filename = Split-Path $vs_download -leaf
+            echo "Downloading ${filename} from ${unity_editor_download}"
+            curl.exe -LO $vs_download
+            $installer_proc = Start-Process -FilePath $filename -ArgumentList "--add ${vs_components}" -PassThru
+            $installer_proc.WaitForExit()
+            Read-Host "(Press enter when the installation is finished)"
+            $visual_studio_info = & $vswhere -products * | Select-String -Pattern "displayName","installationPath" | Select-String -Pattern "${vs_version}" | Select-Object -First 1
+        }
+        else {
+          exit
+        }
     }
     $vs_location = ($visual_studio_info | Select-String -Pattern "installationPath") -replace "installationPath: ",""
     $msbuild = (Get-ChildItem -Path $vs_location "MSBuild.exe" -Recurse).FullName | Select-String -Pattern "amd64"
@@ -177,9 +197,6 @@ function package() {
   Compress-Archive -Path $build_result -DestinationPath "${pkgname}${pkgver}.zip" -Force
 }
 
-function test() {
-    echo $msbuild
-}
 
 check
 download
