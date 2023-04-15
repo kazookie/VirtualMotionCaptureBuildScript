@@ -118,8 +118,18 @@ function check() {
             }
         }
         else {
-            echo "Not Found 'Final IK.unitypackage'. Please download from Asset Store"
-            exit
+            echo "Not Found 'Final IK.unitypackage'."
+            $input = Read-Host "Download Final IK?(y/n)"
+            if ($input -eq "y") {
+                New-Item -Path "Download_FinalIK\Assets\Editor\" -ItemType Directory -Force | Out-Null;
+                Copy-Item -Path "BuildAssistant\Editor\*.cs" -Destination "Download_FinalIK\Assets\Editor\" -Recurse -Force
+                $unity_proc = Start-Process -FilePath $unity_editor -ArgumentList "-createProject Download_FinalIK -executeMethod BuildAssistant.OpenAssetStore" -PassThru
+                $unity_proc.WaitForExit()
+                Read-Host "(Press enter when the installation is finished)"
+            }
+            else {
+              exit
+            }
         }
     }
 }

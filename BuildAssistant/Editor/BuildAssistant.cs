@@ -20,7 +20,15 @@ public class BuildAssistant : MonoBehaviour
         
         AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
     }
-
+    
+    //
+    [MenuItem("BuildAssistant/Open Final IK Page")]
+    public static void OpenAssetStore()
+    {
+        System.Diagnostics.Process.Start("com.unity3d.kharma:com.unity3d.kharma:content/14290");
+        Application.OpenURL("https://assetstore.unity.com/packages/tools/animation/final-ik-14290");
+    }
+    
     // 
     static void ImportPackage()
     {
