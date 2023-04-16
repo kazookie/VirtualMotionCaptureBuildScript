@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEditor.Build.Reporting;
 
@@ -25,8 +26,9 @@ public class BuildAssistant : MonoBehaviour
     [MenuItem("BuildAssistant/Open Final IK Page")]
     public static void OpenAssetStore()
     {
-        System.Diagnostics.Process.Start("com.unity3d.kharma:com.unity3d.kharma:content/14290");
-        Application.OpenURL("https://assetstore.unity.com/packages/tools/animation/final-ik-14290");
+        AssetStore.Open("content/14290");
+        // System.Diagnostics.Process.Start("com.unity3d.kharma:com.unity3d.kharma:content/14290");
+        // Application.OpenURL("https://assetstore.unity.com/packages/tools/animation/final-ik-14290");
     }
     
     // 

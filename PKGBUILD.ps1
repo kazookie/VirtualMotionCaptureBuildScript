@@ -124,8 +124,12 @@ function check() {
                 New-Item -Path "Download_FinalIK\Assets\Editor\" -ItemType Directory -Force | Out-Null;
                 Copy-Item -Path "BuildAssistant\Editor\*.cs" -Destination "Download_FinalIK\Assets\Editor\" -Recurse -Force
                 $unity_proc = Start-Process -FilePath $unity_editor -ArgumentList "-createProject Download_FinalIK -executeMethod BuildAssistant.OpenAssetStore" -PassThru
-                $unity_proc.WaitForExit()
-                Read-Host "(Press enter when the installation is finished)"
+                Read-Host "(Press enter when the downloading is finished)"
+                if (!$unity_proc.HasExited) { $unity_proc.Kill() }
+                Remove-Item "Download_FinalIK" -Recurse -Force
+                
+                $finalIK = (Get-ChildItem -Path "${env:APPDATA}\Unity\Asset Store-5.x" -Recurse "Final IK.unitypackage").FullName
+                Copy-Item $finalIK $wrkdir -Force
             }
             else {
               exit
